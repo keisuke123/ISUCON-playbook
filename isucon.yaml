@@ -1,0 +1,11 @@
+- hosts: servers
+  become: yes
+  roles:
+    - ISUCON
+  vars_prompt:
+    - name: "github_user_name"
+      prompt: "Please Enter Your ID of Github"
+      private: no
+    - name: "github_password"
+      prompt: "Please Enter Your Password of Github"
+      private: yes
