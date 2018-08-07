@@ -19,6 +19,9 @@
 - name: Load bash_profile
   shell: source /home/isucon/.bash_profile executable=/bin/bash
 
+- name: Move .vimrc
+  shell: cp -f ~/config/vimrc ~/.vimrc
+
 - name: Make backup directory
   file: 
     path: /home/{{ user_name }}/backup
