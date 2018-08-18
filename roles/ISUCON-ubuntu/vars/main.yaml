@@ -1,0 +1,8 @@
+--- 
+config_repository_name: ISUCON-config
+user_name: ubuntu 
+alp_version: v0.3.1
+download_path: /tmp
+percona_url:  
+APP_SERVICE_NAME: systemd.go.service 
+MYSQL_USERNAME: root
