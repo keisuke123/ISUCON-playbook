@@ -20,7 +20,6 @@ ISUCONするときに便利そうなものをあつめたAnsibleのplaybookで�
 │       ├── templates/
 │       └── vars/
 │           └── main.yaml
-├── setup.retry
 └── setup.yaml
 ```
 
