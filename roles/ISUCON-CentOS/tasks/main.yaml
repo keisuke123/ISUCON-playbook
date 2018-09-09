@@ -1,0 +1,81 @@
+---
+- name: Install Git
+  yum: name=git
+
+- name: Clone config file
+  git: 
+    repo: https://{{ github_user_name }}:{{ github_password }}@github.com/keisuke123/{{ config_repository_name }}.git
+    dest: "{{ download_path }}/{{ config_repository_name }}"
+
+- name: Copy config file
+  synchronize:
+    src: /tmp/{{ config_repository_name }}/config
+    dest: /home/{{ user_name }}
+  delegate_to: "{{ inventory_hostname }}"
+
+- name: Add shimamon
+  shell: | 
+    if ! grep -q "shimamon" /home/{{ user_name }}/.bash_profile 2>/dev/null; then
+      cat /home/{{ user_name }}/config/bash_profile >> /home/{{ user_name }}/.bash_profile;
+    fi
+
+- name: Load bash_profile
+  shell: source /home/{{ user_name }}/.bash_profile executable=/bin/bash
+
+- name: Move .vimrc
+  shell: cp -f {{ download_path }}/{{ config_repository_name }}/config/vimrc ~/.vimrc
+
+- name: Make backup directory
+  file: 
+    path: /home/{{ user_name }}/backup
+    state: directory
+    owner: "{{ user_name }}"
+    mode: 0755
+
+- name: Backup nginx files
+  shell: |
+    cp /etc/nginx/nginx.conf /home/{{ user_name }}/backup/nginx_`date "+%Y%m%d_%H%M%S".conf`
+
+- name: Backup MySQL files
+  shell: 
+    cp /etc/mysql/my.cnf /home/{{ user_name }}/backup/my_`date "+%Y%m%d_%H%M%S".cnf`
+    mysqldump --single-transaction -u ${  } -p --all-databases | gzip > /home/{{ user_name }}/backup/mysqldump_`date "+%Y%m%d_%H%M%S"`.gz
+
+- name: Install common packages and editors
+  yum: name={{ item }} update_cache=yes
+  with_items:
+    - emacs
+    - vim 
+    - htop
+    - unzip
+  
+- name: Get alp source
+  get_url: 
+    url: https://github.com/tkuchiki/alp/releases/download/{{alp_version}}/alp_linux_amd64.zip
+    dest: "{{ download_path }}/alp_linux_amd64.zip"
+
+- name: Expand alp
+  unarchive: src={{ download_path }}/alp_linux_amd64.zip dest=/usr/local/bin remote_src=yes
+
+- name: Remove alp.zip
+  file: path={{ download_path }}/alp_linux_amd64.zip state=absent
+
+- name: install percona-toolkit
+  yum: name=https://www.percona.com/downloads/percona-toolkit/3.0.11/binary/redhat/7/x86_64/percona-toolkit-debuginfo-3.0.11-1.el7.x86_64.rpm
+
+- name: Install htop
+  yum: name=htop
+
+- name: Restart nginx
+  shell: |
+    systemctl restart nginx
+    
+- name: Restart MySQL
+  shell: |
+    systemctl restart mysqld
+    
+# - name: restart App
+#   shell: |
+#     systemctl daemon-reload
+#     systemctl restart {{ APP_SERVICE_NAME }}
+
